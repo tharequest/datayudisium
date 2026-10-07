@@ -89,6 +89,7 @@ th.sortable { cursor: pointer; }
 td.num { text-align: right; font-variant-numeric: tabular-nums; }
 td.jd { min-width: 280px; }
 .bd { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 12px; border: 1px solid currentColor; white-space: nowrap; }
+.bd.N { color: var(--mu); }
 .bd.C { color: var(--c); } .bd.S { color: var(--s); } .bd.M { color: var(--m); }
 .ft { color: var(--mu); font-size: 12px; margin: 10px 0 0; }
 
@@ -98,6 +99,7 @@ td.jd { min-width: 280px; }
 .card label { display: grid; gap: 4px; font-weight: 600; font-size: 13px; }
 .card input { font-weight: 400; width: 100%; }
 .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sep { border-top: 1px solid var(--bd); padding-top: 12px; display: grid; gap: 6px; justify-items: start; }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
 @media (max-width: 720px) {

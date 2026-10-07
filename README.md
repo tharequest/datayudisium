@@ -5,7 +5,8 @@ Tiap periode baru: login `/admin`, tempel link spreadsheet baru, isi periode dan
 
 ## Fitur
 - Kartu ringkasan, grafik per prodi, tabel dengan cari, filter prodi/predikat, dan urut kolom
-- **Export Excel** (.xlsx) sesuai hasil filter yang sedang tampil
+- **Export Excel** (.xlsx) di dashboard: **semua kolom sheet** (termasuk nama/pekerjaan orang tua dan semua link Drive yang bisa diklik), hanya untuk peserta yang lolos filter yang sedang tampil. Predikat kosong ditulis "Tanpa Predikat".
+- Tombol **Download Excel lengkap** di `/admin` mengunduh semua peserta tanpa filter
 - Data diambil dari Google Sheets (server-side), duplikat NIM otomatis diambil yang terbaru
 - Admin: `/admin` (login dari Environment Variables, session cookie, logout)
 - Klik nama peserta untuk menampilkan **foto** (kolom "Foto Latar Biru") di kartu "Peserta per program studi"
@@ -41,7 +42,8 @@ Lokal tanpa Redis, pengaturan disimpan di `.data/settings.json`.
 - Share: **Anyone with the link, Viewer**
 - Link harus memuat sheet jawaban form (ada `gid=...`)
 - Baris pertama adalah header. Kolom dikenali dari namanya, jadi urutan bebas: `Nama`, `NIM`, `Program Studi`, `Judul Tugas Akhir`, `IPK`, `Skor TOEFL/TUTEP`, `Predikat Kelulusan`
-- Kolom lain (data orang tua, link upload, dll) diabaikan dan tidak pernah ditampilkan
+- Kolom lain (data orang tua, link upload, dll) tidak tampil di tabel, tapi ikut di file Excel hasil export
+- Predikat selain Cumlaude/Sangat Memuaskan/Memuaskan (atau kosong) tampil sebagai **Tanpa Predikat** (abu-abu)
 
 ## Foto peserta
 Foto diambil dari kolom yang headernya diawali kata `Foto` (link Google Drive hasil upload Google Form).
@@ -55,6 +57,11 @@ Foto ini ikut tampil ke semua pengunjung dashboard, jadi pertimbangkan dulu sebe
 - **Refresh**, **Back/Forward**, atau pindah dari halaman admin = otomatis logout, jadi harus login lagi
 - Halaman admin dan API dikirim dengan `Cache-Control: no-store`
 - 5 kali salah password dalam 15 menit akan diblokir sementara (per instance server)
+
+## Mengunci export (opsional)
+Secara default tombol Export di dashboard bisa dipakai siapa pun yang membuka dashboard, dan hasilnya berisi data orang tua.
+Kalau nanti URL dashboard bocor atau ingin lebih aman, tambahkan Environment Variable `EXPORT_REQUIRES_LOGIN=true`
+(lalu redeploy). Setelah itu export dari dashboard ditolak kecuali sedang login admin; unduhan dari `/admin` tetap jalan.
 
 ## Catatan
 - Dashboard ini publik: siapa pun yang punya URL bisa melihat nama, NIM, IPK. Kalau perlu dibatasi, bilang saja supaya ditambah proteksi.

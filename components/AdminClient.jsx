@@ -103,6 +103,32 @@ export default function AdminClient() {
     setBusy(false);
   }
 
+  async function exportAll() {
+    setBusy(true);
+    setMsg(null);
+    try {
+      const r = await fetch('/api/admin/export', { cache: 'no-store' });
+      if (r.status === 401) {
+        backToLogin('Sesi berakhir. Silakan login lagi.');
+      } else if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        setMsg({ type: 'err', text: j.error || 'Gagal membuat file Excel.' });
+      } else {
+        const name = /filename="([^"]+)"/.exec(r.headers.get('Content-Disposition') || '')?.[1] || 'Data-Lengkap-Yudisium.xlsx';
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(await r.blob());
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(a.href);
+      }
+    } catch {
+      setMsg({ type: 'err', text: 'Gagal mengunduh file.' });
+    }
+    setBusy(false);
+  }
+
   if (phase === 'checking') return <main className="adm"><p className="mu">Memeriksa sesi…</p></main>;
 
   if (phase === 'login') {
@@ -152,6 +178,10 @@ export default function AdminClient() {
         <div className="row">
           <button className="btn pri" disabled={busy}>{busy ? 'Memeriksa link…' : 'Simpan'}</button>
           <a className="mu" href="/">Lihat dashboard</a>
+        </div>
+        <div className="sep">
+          <button type="button" className="btn" onClick={exportAll} disabled={busy}>Download Excel lengkap (semua kolom)</button>
+          <p className="mu small">Berisi semua kolom sheet yang sudah tersimpan, termasuk data orang tua dan semua link Drive (foto, bukti jurnal, sertifikat). Hanya bisa diunduh admin.</p>
         </div>
       </form>
     </main>

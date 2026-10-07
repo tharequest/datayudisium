@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-const PR = { C: 'Cumlaude', S: 'Sangat Memuaskan', M: 'Memuaskan' };
+const PR = { C: 'Cumlaude', S: 'Sangat Memuaskan', M: 'Memuaskan', N: 'Tanpa Predikat' };
 
 export default function Dashboard({ initial }) {
   const [data, setData] = useState(initial);
@@ -14,6 +14,8 @@ export default function Dashboard({ initial }) {
   const [stamp, setStamp] = useState('');
   const [sel, setSel] = useState(null); // NIM peserta yang dipilih
   const [imgErr, setImgErr] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportErr, setExportErr] = useState('');
   const cardRef = useRef(null);
   const { rows, periode, tahunAjar, error, fetchedAt } = data;
 
@@ -86,15 +88,34 @@ export default function Dashboard({ initial }) {
     setBusy(false);
   }
 
+  // Export = sheet penuh (semua kolom, termasuk data orang tua dan link Drive),
+  // hanya untuk peserta yang lolos filter yang sedang tampil. File dibuat di server.
   async function exportXlsx() {
-    const XLSX = await import('xlsx');
-    const head = ['No', 'Nama', 'NIM', 'Program Studi', ...(hasJudul ? ['Judul Tugas Akhir'] : []), 'IPK', 'Skor TOEFL/TUTEP', 'Predikat'];
-    const body = list.map((r, i) => [i + 1, r.nama, r.nim, r.prodi, ...(hasJudul ? [r.judul] : []), r.ipk ?? '', r.toefl ?? '', PR[r.pr] || '']);
-    const ws = XLSX.utils.aoa_to_sheet([head, ...body]);
-    ws['!cols'] = head.map((h) => ({ wch: h === 'Judul Tugas Akhir' ? 60 : h === 'Nama' ? 30 : h === 'Program Studi' ? 24 : h === 'Predikat' ? 18 : h === 'NIM' ? 14 : 10 }));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Peserta Yudisium');
-    XLSX.writeFile(wb, `Peserta-Yudisium-FMIPA-Periode-${periode}-${String(tahunAjar).replace('/', '-')}.xlsx`);
+    setExporting(true);
+    setExportErr('');
+    try {
+      const r = await fetch('/api/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nims: list.map((x) => x.nim) }),
+        cache: 'no-store',
+      });
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j.error || 'Gagal membuat file Excel.');
+      }
+      const name = /filename="([^"]+)"/.exec(r.headers.get('Content-Disposition') || '')?.[1] || 'Peserta-Yudisium-FMIPA.xlsx';
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(await r.blob());
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+    } catch (e) {
+      setExportErr(e.message);
+    }
+    setExporting(false);
   }
 
   return (
@@ -109,11 +130,11 @@ export default function Dashboard({ initial }) {
         </div>
         <div className="acts">
           <button className="btn" onClick={refresh} disabled={busy}>{busy ? 'Memuat…' : 'Muat ulang'}</button>
-          <button className="btn pri" onClick={exportXlsx} disabled={!n}>Export Excel ({n})</button>
+          <button className="btn pri" onClick={exportXlsx} disabled={!n || exporting}>{exporting ? 'Menyiapkan…' : `Export Excel (${n})`}</button>
         </div>
       </header>
 
-      {error && <div className="err" role="alert">{error}</div>}
+      {(error || exportErr) && <div className="err" role="alert">{error || exportErr}</div>}
 
       <section className="stats">
         <div className="hero"><b>{n}</b><span>peserta yudisium</span></div>
@@ -159,7 +180,7 @@ export default function Dashboard({ initial }) {
                 <span>{picked.prodi}</span>
                 <span>
                   IPK {picked.ipk == null ? '-' : picked.ipk.toFixed(2)}
-                  {picked.pr ? `, ${PR[picked.pr]}` : ''}
+                  {`, ${PR[picked.pr] || PR.N}`}
                 </span>
                 <button className="btn" onClick={() => setSel(null)}>Tutup</button>
               </div>
@@ -201,7 +222,7 @@ export default function Dashboard({ initial }) {
                 {hasJudul && <td className="jd">{r.judul}</td>}
                 <td className="num">{r.ipk == null ? '-' : r.ipk.toFixed(2)}</td>
                 <td className="num">{r.toefl ?? '-'}</td>
-                <td>{r.pr ? <span className={`bd ${r.pr}`}>{PR[r.pr]}</span> : '-'}</td>
+                <td><span className={`bd ${r.pr || 'N'}`}>{PR[r.pr] || PR.N}</span></td>
               </tr>
             ))}
             {!n && !error && (
