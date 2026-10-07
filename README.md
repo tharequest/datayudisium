@@ -8,6 +8,7 @@ Tiap periode baru: login `/admin`, tempel link spreadsheet baru, isi periode dan
 - **Export Excel** (.xlsx) sesuai hasil filter yang sedang tampil
 - Data diambil dari Google Sheets (server-side), duplikat NIM otomatis diambil yang terbaru
 - Admin: `/admin` (login dari Environment Variables, session cookie, logout)
+- Klik nama peserta untuk menampilkan **foto** (kolom "Foto Latar Biru") di kartu "Peserta per program studi"
 - Link spreadsheet **tidak dikirim ke browser pengunjung**
 
 ## Menjalankan lokal
@@ -41,6 +42,12 @@ Lokal tanpa Redis, pengaturan disimpan di `.data/settings.json`.
 - Link harus memuat sheet jawaban form (ada `gid=...`)
 - Baris pertama adalah header. Kolom dikenali dari namanya, jadi urutan bebas: `Nama`, `NIM`, `Program Studi`, `Judul Tugas Akhir`, `IPK`, `Skor TOEFL/TUTEP`, `Predikat Kelulusan`
 - Kolom lain (data orang tua, link upload, dll) diabaikan dan tidak pernah ditampilkan
+
+## Foto peserta
+Foto diambil dari kolom yang headernya diawali kata `Foto` (link Google Drive hasil upload Google Form).
+Supaya bisa tampil, folder tempat Google Form menyimpan file upload harus dibagikan **Anyone with the link: Viewer**
+(Drive > folder jawaban form > Share). Kalau tidak, muncul pesan "Foto tidak bisa ditampilkan".
+Foto ini ikut tampil ke semua pengunjung dashboard, jadi pertimbangkan dulu sebelum membuka akses folder.
 
 ## Perilaku login
 - Username dan password hanya dari Environment Variables, tidak ada di kode

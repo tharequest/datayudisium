@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 const PR = { C: 'Cumlaude', S: 'Sangat Memuaskan', M: 'Memuaskan' };
 
@@ -12,6 +12,9 @@ export default function Dashboard({ initial }) {
   const [sort, setSort] = useState({ k: 'nama', d: 1 });
   const [busy, setBusy] = useState(false);
   const [stamp, setStamp] = useState('');
+  const [sel, setSel] = useState(null); // NIM peserta yang dipilih
+  const [imgErr, setImgErr] = useState(false);
+  const cardRef = useRef(null);
   const { rows, periode, tahunAjar, error, fetchedAt } = data;
 
   useEffect(() => {
@@ -62,6 +65,14 @@ export default function Dashboard({ initial }) {
     ['Predikat', 'pr'],
   ];
 
+  const picked = useMemo(() => rows.find((r) => r.nim === sel) || null, [rows, sel]);
+
+  function pick(r) {
+    setImgErr(false);
+    setSel(r.nim);
+    cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
   const toggleSort = (k) => setSort((s) => ({ k, d: s.k === k ? -s.d : 1 }));
 
   async function refresh() {
@@ -111,16 +122,50 @@ export default function Dashboard({ initial }) {
         <div className="k"><b>{Math.round(avg(toefls))}</b><span>rata-rata TOEFL/TUTEP</span></div>
       </section>
 
-      <section className="cd">
+      <section className="cd" ref={cardRef}>
         <h2>Peserta per program studi</h2>
-        {byProdi.length === 0 && <p className="mu">Belum ada data.</p>}
-        {byProdi.map(([k, v]) => (
-          <div className="br" key={k}>
-            <span>{k}</span>
-            <i style={{ width: `${(v / max) * 100}%` }} />
-            <b>{v}</b>
+        <div className={picked ? 'split' : ''}>
+          <div>
+            {byProdi.length === 0 && <p className="mu">Belum ada data.</p>}
+            {byProdi.map(([k, v]) => (
+              <div className="br" key={k}>
+                <span>{k}</span>
+                <i style={{ width: `${(v / max) * 100}%` }} />
+                <b>{v}</b>
+              </div>
+            ))}
+            {!picked && n > 0 && <p className="mu small hint">Klik nama peserta di tabel untuk menampilkan fotonya di sini.</p>}
           </div>
-        ))}
+          {picked && (
+            <aside className="pf" aria-live="polite">
+              {picked.foto && !imgErr ? (
+                <img
+                  key={picked.nim}
+                  src={`https://drive.google.com/thumbnail?id=${picked.foto}&sz=w600`}
+                  alt={`Foto ${picked.nama}`}
+                  referrerPolicy="no-referrer"
+                  onError={() => setImgErr(true)}
+                />
+              ) : (
+                <div className="noimg">
+                  {picked.foto
+                    ? 'Foto tidak bisa ditampilkan. Pastikan folder upload foto di Google Drive dibagikan "Anyone with the link".'
+                    : 'Peserta ini belum mengunggah foto.'}
+                </div>
+              )}
+              <div className="pi">
+                <b>{picked.nama}</b>
+                <span>{picked.nim}</span>
+                <span>{picked.prodi}</span>
+                <span>
+                  IPK {picked.ipk == null ? '-' : picked.ipk.toFixed(2)}
+                  {picked.pr ? `, ${PR[picked.pr]}` : ''}
+                </span>
+                <button className="btn" onClick={() => setSel(null)}>Tutup</button>
+              </div>
+            </aside>
+          )}
+        </div>
       </section>
 
       <div className="tb">
@@ -148,9 +193,9 @@ export default function Dashboard({ initial }) {
           </thead>
           <tbody>
             {list.map((r, i) => (
-              <tr key={r.nim}>
+              <tr key={r.nim} className={r.nim === sel ? 'on' : ''}>
                 <td>{i + 1}</td>
-                <td>{r.nama}</td>
+                <td><button className="nm" onClick={() => pick(r)}>{r.nama}</button></td>
                 <td>{r.nim}</td>
                 <td>{r.prodi}</td>
                 {hasJudul && <td className="jd">{r.judul}</td>}

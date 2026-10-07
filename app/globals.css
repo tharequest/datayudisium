@@ -63,6 +63,17 @@ h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
 .br i { display: block; height: 10px; background: var(--ac); border-radius: 3px; min-width: 3px; }
 .br b { text-align: right; }
 
+.split { display: grid; grid-template-columns: 1fr 260px; gap: 16px; align-items: start; }
+.hint { margin-top: 8px; }
+.pf { display: grid; gap: 10px; }
+.pf img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 8px; background: var(--bd); display: block; }
+.noimg { aspect-ratio: 3 / 4; display: grid; place-items: center; text-align: center; padding: 16px; border-radius: 8px; border: 1px dashed var(--bd); color: var(--mu); font-size: 13px; }
+.pi { display: grid; gap: 2px; font-size: 13px; }
+.pi span { color: var(--mu); }
+.pi .btn { justify-self: start; margin-top: 8px; }
+button.nm { all: unset; cursor: pointer; color: var(--ac); text-decoration: underline; text-underline-offset: 3px; }
+button.nm:focus-visible { outline: 2px solid var(--ac); outline-offset: 2px; }
+tr.on td { background: color-mix(in srgb, var(--ac) 10%, transparent); }
 .tb { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 input, select {
   font: inherit; background: var(--card); color: var(--tx);
@@ -94,5 +105,7 @@ td.jd { min-width: 280px; }
   .hero { grid-column: 1 / -1; }
   .br { grid-template-columns: 110px 1fr 26px; }
   .two { grid-template-columns: 1fr; }
+  .split { grid-template-columns: 1fr; }
+  .pf { grid-template-columns: 140px 1fr; align-items: start; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
